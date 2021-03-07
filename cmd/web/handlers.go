@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"text/template"
 )
 
 func index(w http.ResponseWriter, r *http.Request) {
@@ -14,7 +15,27 @@ func index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte("Hello from the Webserver"))
+	// w.Write([]byte("Hello from the Webserver"))
+
+	// define an slice (lists in python)
+	files := []string{
+		"./ui/html/index.page.tmpl",
+		"./ui/html/base.layout.tmpl",
+		"./ui/html/footer.partial.tmpl",
+	}
+
+	// Implementing variadic functions for the files
+	// to avoid to add manually
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		// Return an error for the stdout
+		log.Println(err.Error())
+		// Return an error to the ResponseWriter function
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+
+	err = ts.Execute(w, nil)
 }
 
 // Function to manage the /template?id=XXX
@@ -35,9 +56,21 @@ func showTemplate(w http.ResponseWriter, r *http.Request) {
 
 func createTemplate(w http.ResponseWriter, r *http.Request) {
 	// Raise a Method Not Allowed or 405
-	if r.Method != "POST" {
+	// If the method is POST
+	if r.Method == "POST" {
+
+		w.Write([]byte("Create a new template"))
+
+		// Elif method is PUT
+	} else if r.Method == "PUT" {
+
+		w.Write([]byte("Update a new template"))
+
+		// For the rest of the Methods
+	} else {
+
 		// Use the Header().Set() method to add an 'Allow: POST' header to the response header map
-		w.Header().Set("Allow", "POST")
+		w.Header().Set("Allow", "POST, PUT")
 
 		// Use instead the http.Error()
 		// w.WriteHeader(405)
@@ -46,23 +79,7 @@ func createTemplate(w http.ResponseWriter, r *http.Request) {
 		//Use the http.Error() function to send a 405 status code
 		http.Error(w, "Method Not Allowed. Please check Allowed Methods", 405)
 		return
+
 	}
 
-	w.Write([]byte("Create a new template"))
-}
-
-func main() {
-	// Initialize a new servemux
-	mux := http.NewServeMux()
-	// Register a / as the index
-	mux.HandleFunc("/", index)
-
-	mux.HandleFunc("/template", showTemplate)
-
-	mux.HandleFunc("/template/create", createTemplate)
-
-	log.Println("Starting Server on :3000")
-	// Starting a new web server on 3000 port and log the errors if any
-	err := http.ListenAndServe(":3000", mux)
-	log.Fatal(err)
 }
