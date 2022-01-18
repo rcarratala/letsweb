@@ -8,6 +8,10 @@ import (
 	"text/template"
 )
 
+type Health struct {
+	Status string
+}
+
 func index(w http.ResponseWriter, r *http.Request) {
 	// Raise an 404 if the url not matches
 	if r.URL.Path != "/" {
@@ -36,6 +40,43 @@ func index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = ts.Execute(w, nil)
+	if err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+	}
+}
+
+func rckStatus(w http.ResponseWriter, r *http.Request) {
+
+	files := []string{
+		"./ui/html/rck.page.tmpl",
+		"./ui/html/base.layout.tmpl",
+		"./ui/html/footer.partial.tmpl",
+	}
+
+	// URL to https://github.com/rcarrata/rck-api microservice
+	url := "http://localhost:8080/healthz"
+	dat := getApiRequest(url)
+	rck_name := "rck"
+	log.Printf("Request to -> %s microservice", rck_name)
+
+	// Implementing variadic functions for the files
+	// to avoid to add manually
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		// Return an error for the stdout
+		log.Println(err.Error())
+		// Return an error to the ResponseWriter function
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+
+	err = ts.Execute(w, dat)
+	if err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+	}
+
 }
 
 // Function to manage the /template?id=XXX

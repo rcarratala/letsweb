@@ -14,6 +14,7 @@ func main() {
 	// short text defining the text
 	addr := flag.String("addr", ":3000", "HTTP network address")
 
+
 	// Parse the command line and assigns it to the addr variable
 	flag.Parse()
 
@@ -34,6 +35,9 @@ func main() {
 	// this is equal to
 	// http.HandlerFunc works adding a ServerHTTP() to the index function
 	// mux.HandleFunc("/", http.HandleFunc(index))
+
+	// Register a /template for show the existent template
+	mux.HandleFunc("/rck", rckStatus)
 
 	// Register a /template for show the existent template
 	mux.HandleFunc("/template", showTemplate)
